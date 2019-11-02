@@ -7,10 +7,11 @@ from logging import Formatter, FileHandler
 
 import babel
 import dateutil.parser
-from flask import render_template, request, flash, redirect, url_for
+from flask import render_template, request, flash, redirect, url_for, abort
 
-from . import app
+from . import app, db
 from .forms import *
+from .models import Venue
 
 
 # ----------------------------------------------------------------------------#
@@ -182,15 +183,32 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-    # TODO: insert form data as a new Venue record in the db, instead
-    # TODO: modify data to be the data object returned from db insertion
-
-    # on successful db insert, flash success
-    flash('Venue ' + request.form['name'] + ' was successfully listed!')
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-    # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-    return render_template('pages/home.html')
+    try:
+        venue = Venue(
+            name=request.get_json()['name'],
+            city=request.get_json()['city'],
+            state=request.get_json()['state'],
+            address=request.get_json()['address'],
+            phone=request.get_json()['phone'],
+            image_link=request.get_json()['image_link'],
+            facebook_link=request.get_json()['facebook_link'],
+            genres=request.get_json()['genres'],
+            website=request.get_json()['website'],
+            seeking_talent=request.get_json()['seeking_talent'],
+            seeking_description=request.get_json()['seeking_description'],
+        )
+        db.session.add(venue)
+        db.session.commit()
+        # on successful db insert, flash success
+        flash('Venue ' + venue.name + ' was successfully listed!')
+        return render_template('pages/home.html')
+    except Exception as e:
+        print(f'Error ==> {e}')
+        flash('An error occurred. Venue ' + request.get_json()['name'] + ' could not be listed.')
+        db.session.rollback()
+        abort(400)
+    finally:
+        db.session.close()
 
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
