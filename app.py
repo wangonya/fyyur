@@ -185,17 +185,17 @@ def create_venue_form():
 def create_venue_submission():
     try:
         venue = Venue(
-            name=request.get_json()['name'],
-            city=request.get_json()['city'],
-            state=request.get_json()['state'],
-            address=request.get_json()['address'],
-            phone=request.get_json()['phone'],
-            image_link=request.get_json()['image_link'],
-            facebook_link=request.get_json()['facebook_link'],
-            genres=request.get_json()['genres'],
-            website=request.get_json()['website'],
-            seeking_talent=request.get_json()['seeking_talent'],
-            seeking_description=request.get_json()['seeking_description'],
+            name=request.form['name'],
+            city=request.form['city'],
+            state=request.form['state'],
+            address=request.form['address'],
+            phone=request.form['phone'],
+            image_link=request.form['image_link'],
+            facebook_link=request.form['facebook_link'],
+            genres=request.form.getlist('genres'),
+            website=request.form['website'],
+            seeking_talent=True if request.form.get('seeking_talent') is 'y' else False,
+            seeking_description=request.form.get('seeking_description', ''),
         )
         db.session.add(venue)
         db.session.commit()
@@ -204,7 +204,7 @@ def create_venue_submission():
         return render_template('pages/home.html')
     except Exception as e:
         print(f'Error ==> {e}')
-        flash('An error occurred. Venue ' + request.get_json()['name'] + ' could not be listed.')
+        flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
         db.session.rollback()
         abort(400)
     finally:
