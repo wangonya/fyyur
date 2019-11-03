@@ -21,6 +21,9 @@ class Venue(db.Model):
     seeking_description = db.Column(db.String)
     shows = db.relationship('Show', backref='venue', lazy=True)
 
+    def __repr__(self):
+        return f'<Venue {self.id} {self.name}>'
+
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
