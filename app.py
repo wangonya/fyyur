@@ -46,18 +46,6 @@ def index():
 def venues():
     # TODO: num_shows should be aggregated based on number of upcoming shows per venue.
     # data = [{
-    #     "city": "San Francisco",
-    #     "state": "CA",
-    #     "venues": [{
-    #         "id": 1,
-    #         "name": "The Musical Hop",
-    #         "num_upcoming_shows": 0,
-    #     }, {
-    #         "id": 3,
-    #         "name": "Park Square Live Music & Coffee",
-    #         "num_upcoming_shows": 1,
-    #     }]
-    # }, {
     #     "city": "New York",
     #     "state": "NY",
     #     "venues": [{
@@ -193,7 +181,7 @@ def create_venue_submission():
         print(f'Error ==> {e}')
         flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
         db.session.rollback()
-        abort(400)
+        return render_template('pages/home.html')
     finally:
         db.session.close()
 
@@ -398,14 +386,27 @@ def create_artist_form():
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
     # called upon submitting the new artist listing form
-    # TODO: insert form data as a new Venue record in the db, instead
-    # TODO: modify data to be the data object returned from db insertion
-
-    # on successful db insert, flash success
-    flash('Artist ' + request.form['name'] + ' was successfully listed!')
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
-    return render_template('pages/home.html')
+    try:
+        form = ArtistForm()
+        artist = Artist(
+            name=form.name.data,
+            city=form.city.data,
+            state=form.state.data,
+            phone=form.phone.data,
+            genres=form.genres.data,
+            facebook_link=form.facebook_link.data,
+        )
+        db.session.add(artist)
+        db.session.commit()
+        # on successful db insert, flash success
+        flash('Artist ' + artist.name + ' was successfully listed!')
+        return render_template('pages/home.html')
+    except Exception as e:
+        flash(f"An error occurred. Artist {request.form['name']} could not be listed. Error: {e}")
+        db.session.rollback()
+        return render_template('pages/home.html')
+    finally:
+        db.session.close()
 
 
 #  Shows
