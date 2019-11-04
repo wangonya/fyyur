@@ -230,5 +230,14 @@ class ArtistForm(Form):
         # TODO implement enum restriction
         'facebook_link', validators=[URL()]
     )
+    website = StringField(
+        'website', validators=[URL()]
+    )
+    seeking_venue = BooleanField(
+        'seeking_venue',
+    )
+    seeking_description = StringField(
+        'seeking_description', widget=TextArea()
+    )
 
 # TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM
