@@ -1,6 +1,7 @@
 {% extends 'layouts/main.html' %}
 {% block title %}Fyyur | Venues{% endblock %}
 {% block content %}
+{% if areas %}
 {% for area in areas %}
 <h3>{{ area.city }}, {{ area.state }}</h3>
 	<ul class="items">
@@ -16,4 +17,8 @@
 		{% endfor %}
 	</ul>
 {% endfor %}
+{% else %}
+<p>Nothing here.</p>
+<a href="/venues/create" class="btn btn-primary">Create new venue</a>
+{% endif %}
 {% endblock %}
