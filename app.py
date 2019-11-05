@@ -9,9 +9,9 @@ import babel
 import dateutil.parser
 from flask import render_template, request, flash, redirect, url_for, abort
 
-from . import app, db
-from .forms import *
-from .models import Venue, Show, Artist
+from backend import app, db
+from backend.forms import *
+from backend.models import Venue, Show, Artist
 
 
 # ----------------------------------------------------------------------------#
