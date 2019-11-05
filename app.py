@@ -44,43 +44,37 @@ def index():
 
 @app.route('/venues')
 def venues():
-    # TODO: num_shows should be aggregated based on number of upcoming shows per venue.
-    # data = [{
-    #     "city": "New York",
-    #     "state": "NY",
-    #     "venues": [{
-    #         "id": 2,
-    #         "name": "The Dueling Pianos Bar",
-    #         "num_upcoming_shows": 0,
-    #     }]
-    # }]
     areas = db.session.query(Venue.city, Venue.state).distinct()
     data = []
     for venue in areas:
         venue = dict(zip(('city', 'state'), venue))
-        venue['venues'] = Venue.query.filter_by(city=venue['city'], state=venue['state']).all()
+        venue['venues'] = []
+        for venue_data in Venue.query.filter_by(city=venue['city'], state=venue['state']).all():
+            shows = Show.query.filter_by(venue_id=venue_data.id).all()
+            venues_data = {
+                'id': venue_data.id,
+                'name': venue_data.name,
+                'num_upcoming_shows': len(upcoming_shows(shows))
+            }
+            venue['venues'].append(venues_data)
         data.append(venue)
-    print(f'data ==> {data}')
+    print(f"data venues ==> {data[0]['venues']}")
     return render_template('pages/venues.html', areas=data)
 
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-    # TODO: num_shows should be aggregated based on number of upcoming shows per venue
     response = {
-        # "count": 1,
-        # "data": [{
-        #     "id": 2,
-        #     "name": "The Dueling Pianos Bar",
-        #     "num_upcoming_shows": 0,
-        # }]
         "data": []
     }
     venues = db.session.query(Venue.name, Venue.id).all()
     for venue in venues:
         name = venue[0]
+        id = venue[1]
         if name.find(request.form.get('search_term', '')) != -1:
+            shows = Show.query.filter_by(venue_id=id).all()
             venue = dict(zip(('name', 'id'), venue))
+            venue['num_upcoming_shows'] = len(upcoming_shows(shows))
             response['data'].append(venue)
     response['count'] = len(response['data'])
     return render_template('pages/search_venues.html', results=response,
@@ -95,36 +89,6 @@ def show_venue(venue_id):
     venue = Venue.query.filter_by(id=venue_id).first()
     shows = Show.query.filter_by(venue_id=venue_id).all()
 
-    # returns upcoming shows
-    def upcoming_shows():
-        upcoming = []
-
-        # if show is in future, add show details to upcoming
-        for show in shows:
-            if show.start_time > datetime.now():
-                upcoming.append({
-                    "artist_id": show.artist_id,
-                    "artist_name": Artist.query.filter_by(id=show.artist_id).first().name,
-                    "artist_image_link": Artist.query.filter_by(id=show.artist_id).first().image_link,
-                    "start_time": format_datetime(str(show.start_time))
-                })
-        return upcoming
-
-    # returns past shows
-    def past_shows():
-        past = []
-
-        # if show is in past, add show details to past
-        for show in shows:
-            if show.start_time < datetime.now():
-                past.append({
-                    "artist_id": show.artist_id,
-                    "artist_name": Artist.query.filter_by(id=show.artist_id).first().name,
-                    "artist_image_link": Artist.query.filter_by(id=show.artist_id).first().image_link,
-                    "start_time": format_datetime(str(show.start_time))
-                })
-        return past
-
     data = {
         "id": venue.id,
         "name": venue.name,
@@ -138,10 +102,10 @@ def show_venue(venue_id):
         "seeking_talent": venue.seeking_talent,
         "seeking_description": venue.seeking_description,
         "image_link": venue.image_link,
-        "past_shows": past_shows(),
-        "upcoming_shows": upcoming_shows(),
-        "past_shows_count": len(past_shows()),
-        "upcoming_shows_count": len(upcoming_shows())
+        "past_shows": past_shows(shows),
+        "upcoming_shows": upcoming_shows(shows),
+        "past_shows_count": len(past_shows(shows)),
+        "upcoming_shows_count": len(upcoming_shows(shows))
     }
     return render_template('pages/show_venue.html', venue=data)
 
@@ -463,6 +427,34 @@ def create_show_submission():
         return render_template('forms/new_show.html', form=form)
     finally:
         db.session.close()
+
+
+def upcoming_shows(shows):
+    upcoming = []
+
+    for show in shows:
+        if show.start_time > datetime.now():
+            upcoming.append({
+                "artist_id": show.artist_id,
+                "artist_name": Artist.query.filter_by(id=show.artist_id).first().name,
+                "artist_image_link": Artist.query.filter_by(id=show.artist_id).first().image_link,
+                "start_time": format_datetime(str(show.start_time))
+            })
+    return upcoming
+
+
+def past_shows(shows):
+    past = []
+
+    for show in shows:
+        if show.start_time < datetime.now():
+            past.append({
+                "artist_id": show.artist_id,
+                "artist_name": Artist.query.filter_by(id=show.artist_id).first().name,
+                "artist_image_link": Artist.query.filter_by(id=show.artist_id).first().image_link,
+                "start_time": format_datetime(str(show.start_time))
+            })
+    return past
 
 
 @app.errorhandler(404)
