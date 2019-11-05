@@ -58,7 +58,6 @@ def venues():
             }
             venue['venues'].append(venues_data)
         data.append(venue)
-    print(f"data venues ==> {data[0]['venues']}")
     return render_template('pages/venues.html', areas=data)
 
 
