@@ -75,7 +75,14 @@
 	</div>
 </section>
 
-<button class="btn btn-danger" onclick="deleteVenue({{venue.id}})">Delete venue</button><br><br><br>
+<section class="row">
+	<div class="col-md-3">
+		<a class="btn btn-warning" href="/venues/{{venue.id}}/edit">Edit venue</a>
+	</div>
+	<div class="col-md-3">
+		<button class="btn btn-danger" onclick="deleteVenue({{venue.id}})">Delete venue</button>
+	</div>
+</section><br><br><br>
 
 <script type="text/javascript" src="/static/js/venue.js"></script>
 {% endblock %}
