@@ -1,0 +1,7 @@
+.DS_Store
+.env
+.idea/
+__pycache__/
+migrations/__pycache__/
+migrations/versions/__pycache__/
+venv/
